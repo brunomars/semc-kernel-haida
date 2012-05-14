@@ -1,8 +1,8 @@
 VERSION = 2
 PATCHLEVEL = 6
 SUBLEVEL = 32
-EXTRAVERSION = .9
-NAME = r100
+EXTRAVERSION = .10
+NAME = Man-Eating Seals of Antiquity
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
@@ -181,7 +181,7 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 export KBUILD_BUILDHOST := $(SUBARCH)
 ARCH		?= arm
-CROSS_COMPILE	?= ~/toolchain/arm-eabi-linaro-4.6.2/bin/arm-eabi-
+CROSS_COMPILE	?= 
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
