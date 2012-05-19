@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.32.15
- * Mon Feb  4 01:34:04 2013
+ * Mon Feb  4 01:51:08 2013
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ZRAM_DEBUG 1
@@ -758,6 +758,7 @@
 #define CONFIG_LLC 1
 #define CONFIG_CPU_FREQ_GOV_POWERSAVE 1
 #define CONFIG_SND_MSM_MVS7x30_SOC 1
+#define CONFIG_CPU_FREQ_VDD_LEVELS 1
 #define CONFIG_HAVE_MEMORY_PRESENT 1
 #define CONFIG_ARCH_HAS_HOLES_MEMORYMODEL 1
 #define CONFIG_VIDEO_V4L1 1
