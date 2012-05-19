@@ -14,6 +14,7 @@
  *
  * Author: Mike Chan (mike@android.com)
  * Edited: Tegrak (luciferanna@gmail.com)
+ * Edited: Bylos (bylos72@gmail.com)
  *
  * Driver values in /sys/devices/system/cpu/cpufreq/lulzactive
  * 
@@ -37,6 +38,7 @@
 
 // if you changed some codes for optimization, just write your name here.
 #define LULZACTIVE_TUNER "neophyte"
+#define LULZACTIVE_TUNER "bylos"
 
 #define LOGI(fmt...) printk(KERN_INFO "[lulzactive] " fmt)
 #define LOGW(fmt...) printk(KERN_WARNING "[lulzactive] " fmt)
@@ -128,7 +130,7 @@ static unsigned long pump_down_step;
  */
 static unsigned int early_suspended;
 
-#define SCREEN_OFF_LOWEST_STEP 		(0xffffffff)
+#define SCREEN_OFF_LOWEST_STEP 		(0)
 #define DEFAULT_SCREEN_OFF_MIN_STEP	(SCREEN_OFF_LOWEST_STEP)
 static unsigned long screen_off_min_step;
 
@@ -368,9 +370,10 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 			}
 			
 			// apply pump_up_step by tegrak
-			index -= pump_up_step;
-			if (index < 0)
-				index = 0;
+			index += pump_up_step;
+			if (index >= pcpu->freq_table_size) {
+				index = pcpu->freq_table_size - 1;
+			}
 			
 			new_freq = pcpu->freq_table[index].frequency;
 		}
@@ -378,25 +381,6 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 			new_freq = pcpu->policy->max;
 		}
 	}
-	/*
-	else if (cpu_load <= dec_cpu_load) {
-		ret = cpufreq_frequency_table_target(
-			pcpu->policy, pcpu->freq_table,
-			pcpu->policy->cur, CPUFREQ_RELATION_H,
-			&index);
-		if (ret < 0) {
-			goto rearm;
-		}
-		if (ramp_down_step) {
-			//set next low frequency of table
-			new_freq = pcpu->freq_table[index + 1].frequency;
-		}
-		else if (ramp_down_step) {
-			//new_freq = pcpu->policy->max * cpu_load / 100;
-			new_freq = pcpu->policy->min;
-		}
-	}
-	*/
 	else if (stuck_on_sampling) {
 		new_freq = pcpu->policy->cur;
 	}
@@ -404,17 +388,16 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 		if (pump_down_step) {
 			ret = cpufreq_frequency_table_target(
 				pcpu->policy, pcpu->freq_table,
-				pcpu->policy->cur, CPUFREQ_RELATION_H,
+				pcpu->policy->cur, CPUFREQ_RELATION_L,
 				&index);
 			if (ret < 0) {
 				goto rearm;
 			}
 			
 			// apply pump_down_step by tegrak
-			index += pump_down_step;
-			if (index >= pcpu->freq_table_size) {
-				index = pcpu->freq_table_size - 1;
-			}
+			index -= pump_down_step;
+			if (index < 0)
+				index = 0;
 			
 			new_freq = (pcpu->policy->cur > pcpu->policy->min) ? 
 				(pcpu->freq_table[index].frequency) :
@@ -464,6 +447,24 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 		}
 	}
 	
+	if (suspending && debug_mode & LULZACTIVE_DEBUG_SUSPEND) {
+		LOGI("suspending: cpu_load=%d%% new_freq=%u ppcpu->policy->cur=%u\n", 
+			 cpu_load, new_freq, pcpu->policy->cur);
+	}
+	//if (early_suspended && !suspending && debug_mode & LULZACTIVE_DEBUG_EARLY_SUSPEND) {
+	if (early_suspended && !suspending && debug_mode & LULZACTIVE_DEBUG_LOAD) {
+		LOGI("early_suspended: cpu_load=%d%% new_freq=%u ppcpu->policy->cur=%u\n", 
+			 cpu_load, new_freq, pcpu->policy->cur);
+		//LOGI("lock @%uMHz!\n", new_freq/1000);
+	}
+	if (debug_mode & LULZACTIVE_DEBUG_LOAD && !early_suspended && !suspending) {
+		LOGI("cpu_load=%d%% new_freq=%u pcpu->target_freq=%u\n", 
+			 cpu_load, new_freq, pcpu->target_freq);
+	}
+
+	dbgpr("timer %d: load=%d cur=%d tgt=%d queue\n", (int) data, cpu_load, pcpu->target_freq, new_freq);
+
+>>>>>>> 389ea0d... governors :
 	stuck_on_sampling = 0;
 	
 	if (new_freq < pcpu->target_freq) {
@@ -693,7 +694,7 @@ static void cpufreq_lulzactive_freq_down(struct work_struct *work)
 		pcpu = &per_cpu(cpuinfo, cpu);
 		__cpufreq_driver_target(pcpu->policy,
 					pcpu->target_freq,
-					CPUFREQ_RELATION_H);
+					CPUFREQ_RELATION_L);
 		pcpu->freq_change_time_in_idle =
 			get_cpu_idle_time_us(cpu,
 					     &pcpu->freq_change_time);
@@ -802,6 +803,7 @@ static ssize_t show_pump_down_step(struct kobject *kobj,
 static ssize_t store_pump_down_step(struct kobject *kobj,
 			struct attribute *attr, const char *buf, size_t count)
 {
+
 	struct cpufreq_lulzactive_cpuinfo *pcpu;
 	
 	if(strict_strtoul(buf, 0, &pump_down_step)==-EINVAL) return -EINVAL;
@@ -812,6 +814,7 @@ static ssize_t store_pump_down_step(struct kobject *kobj,
 		pump_down_step = pcpu->freq_table_size - 1;
 	}
 	return count;
+	return strict_strtoul(buf, 0, &pump_down_step);
 }
 
 static struct global_attr pump_down_step_attr = __ATTR(pump_down_step, 0666,
@@ -824,7 +827,6 @@ static ssize_t show_screen_off_min_step(struct kobject *kobj,
 	struct cpufreq_lulzactive_cpuinfo *pcpu;
 	
 	pcpu = &per_cpu(cpuinfo, 0);
-	fix_screen_off_min_step(pcpu);
 	
 	return sprintf(buf, "%lu\n", screen_off_min_step);
 }
@@ -837,7 +839,6 @@ static ssize_t store_screen_off_min_step(struct kobject *kobj,
 	if(strict_strtoul(buf, 0, &screen_off_min_step)==-EINVAL) return -EINVAL;
 	
 	pcpu = &per_cpu(cpuinfo, 0);
-	fix_screen_off_min_step(pcpu);
 	
 	return count;
 }
@@ -1040,16 +1041,161 @@ static void lulzactive_late_resume(struct early_suspend *handler) {
 static struct early_suspend lulzactive_power_suspend = {
 	.suspend = lulzactive_early_suspend,
 	.resume = lulzactive_late_resume,
+#ifdef CONFIG_MACH_HERO
 	.level = EARLY_SUSPEND_LEVEL_DISABLE_FB + 1,
+#endif
 };
 
 void start_lulzactive(void)
 {
 	//it is more appropriate to start the up_task thread after starting the governor -gm
+
+static int lulzactive_pm_notifier_event(struct notifier_block *this,
+		unsigned long event, void *ptr)
+{
+	struct cpufreq_policy* policy;
+	
+	switch (event) {
+	case PM_SUSPEND_PREPARE:
+		suspending = 1;
+		if (debug_mode & LULZACTIVE_DEBUG_SUSPEND) {
+			LOGI("PM_SUSPEND_PREPARE");
+			policy = cpufreq_cpu_get(0);
+			if (policy) {
+				LOGI("PM_SUSPEND_PREPARE using @%uMHz\n", policy->cur);
+			}
+		}
+		break;
+	case PM_POST_SUSPEND:
+		suspending = 0;
+		if (debug_mode & LULZACTIVE_DEBUG_SUSPEND) {
+			LOGI("PM_POST_SUSPEND");
+			policy = cpufreq_cpu_get(0);
+			if (policy) {
+				LOGI("PM_POST_SUSPEND using @%uMHz\n", policy->cur);
+			}
+		}
+		break;
+	case PM_RESTORE_PREPARE:
+		if (debug_mode & LULZACTIVE_DEBUG_SUSPEND) {
+			LOGI("PM_RESTORE_PREPARE");
+		}
+		break;
+	case PM_POST_RESTORE:
+		if (debug_mode & LULZACTIVE_DEBUG_SUSPEND) {
+			LOGI("PM_POST_RESTORE");
+		}
+		break;
+	case PM_HIBERNATION_PREPARE:
+		if (debug_mode & LULZACTIVE_DEBUG_SUSPEND) {
+			LOGI("PM_HIBERNATION_PREPARE");
+		}
+		break;
+	case PM_POST_HIBERNATION:
+		if (debug_mode & LULZACTIVE_DEBUG_SUSPEND) {
+			LOGI("PM_POST_HIBERNATION");
+		}
+		break;
+	}
+	return NOTIFY_DONE;
+}
+
+static struct notifier_block lulzactive_pm_notifier = {
+	.notifier_call = lulzactive_pm_notifier_event,
+};
+
+static int cpufreq_governor_lulzactive(struct cpufreq_policy *new_policy,
+		unsigned int event)
+{
+	int rc;
+	struct cpufreq_lulzactive_cpuinfo *pcpu =
+		&per_cpu(cpuinfo, new_policy->cpu);
+
+	switch (event) {
+	case CPUFREQ_GOV_START:
+		if (debug_mode & LULZACTIVE_DEBUG_START_STOP) {
+			LOGI("CPUFREQ_GOV_START\n");
+		}
+		if (!cpu_online(new_policy->cpu))
+			return -EINVAL;
+
+		register_pm_notifier(&lulzactive_pm_notifier);
+		register_early_suspend(&lulzactive_power_suspend);
+
+		pcpu->policy = new_policy;
+		pcpu->freq_table = cpufreq_frequency_get_table(new_policy->cpu);
+		pcpu->target_freq = new_policy->cur;
+		pcpu->freq_change_time_in_idle =
+			get_cpu_idle_time_us(new_policy->cpu,
+					     &pcpu->freq_change_time);
+		pcpu->governor_enabled = 1;
+		pcpu->freq_table_size = get_freq_table_size(pcpu->freq_table);
+	
+		/*
+		 * Do not register the idle hook and create sysfs
+		 * entries if we have already done so.
+		 */
+		if (atomic_inc_return(&active_count) > 1)
+			return 0;
+
+		rc = sysfs_create_group(cpufreq_global_kobject,
+				&lulzactive_attr_group);
+		if (rc)
+			return rc;
+
+		pm_idle_old = pm_idle;
+		pm_idle = cpufreq_lulzactive_idle;
+		break;
+
+	case CPUFREQ_GOV_STOP:
+		if (debug_mode & LULZACTIVE_DEBUG_START_STOP) {
+			LOGI("CPUFREQ_GOV_STOP\n");
+		}
+		pcpu->governor_enabled = 0;
+
+		del_timer(&pcpu->cpu_timer);
+
+		unregister_early_suspend(&lulzactive_power_suspend);
+		unregister_pm_notifier(&lulzactive_pm_notifier);
+
+		if (atomic_dec_return(&active_count) <= 1) {
+			sysfs_remove_group(cpufreq_global_kobject,
+					&lulzactive_attr_group);
+			pm_idle = pm_idle_old;
+		}
+
+		break;
+
+	case CPUFREQ_GOV_LIMITS:
+		if (new_policy->max < new_policy->cur)
+			__cpufreq_driver_target(new_policy,
+					new_policy->max, CPUFREQ_RELATION_H);
+		else if (new_policy->min > new_policy->cur)
+			__cpufreq_driver_target(new_policy,
+					new_policy->min, CPUFREQ_RELATION_L);
+		break;
+	}
+	return 0;
+}
+
+static int __init cpufreq_lulzactive_init(void)
+{
+	unsigned int err;
 	unsigned int i;
 	struct cpufreq_lulzactive_cpuinfo *pcpu;
 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
 
+	up_sample_time = DEFAULT_UP_SAMPLE_TIME;
+	down_sample_time = DEFAULT_DOWN_SAMPLE_TIME;
+	debug_mode = DEFAULT_DEBUG_MODE;
+	inc_cpu_load = DEFAULT_INC_CPU_LOAD;
+	pump_up_step = DEFAULT_PUMP_UP_STEP;
+	pump_down_step = DEFAULT_PUMP_DOWN_STEP;
+	early_suspended = 0;
+	suspending = 0;
+	screen_off_min_step = DEFAULT_SCREEN_OFF_MIN_STEP;
+
+>>>>>>> 389ea0d... governors :
 	/* Initalize per-cpu timers */
 	for_each_possible_cpu(i) {
 		pcpu = &per_cpu(cpuinfo, i);
@@ -1104,8 +1250,10 @@ static int __init cpufreq_lulzactive_init(void)
 	   warm cache (probably doesn't matter much). */
 	down_wq = create_workqueue("klulzactive_down");
 
-	if (! down_wq)
-		goto err_freeuptask;
+	if (! down_wq) {
+		put_task_struct(up_task);
+		return -ENOMEM;
+	}
 
 	INIT_WORK(&freq_scale_down_work,
 		  cpufreq_lulzactive_freq_down);
@@ -1119,11 +1267,14 @@ static int __init cpufreq_lulzactive_init(void)
 	spin_lock_init(&down_cpumask_lock);
 	spin_lock_init(&up_cpumask_lock);
 
-	return cpufreq_register_governor(&cpufreq_gov_lulzactive);
+	err = cpufreq_register_governor(&cpufreq_gov_lulzactive);
 
-err_freeuptask:
-	put_task_struct(up_task);
-	return -ENOMEM;
+	if (err) {
+		put_task_struct(up_task);
+		destroy_workqueue(down_wq);
+	}
+
+	return err;
 }
 
 #ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_LULZACTIVE
