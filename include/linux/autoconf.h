@@ -1,7 +1,12 @@
 /*
  * Automatically generated C config: don't edit
+<<<<<<< HEAD
  * Linux kernel version: 2.6.32.14
  * Thu Jan 31 05:00:05 2013
+=======
+ * Linux kernel version: 2.6.32.9
+ * Wed Jan 30 14:24:39 2013
+>>>>>>> 660a826... VM Max and 0% Battery update
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ZRAM_DEBUG 1
