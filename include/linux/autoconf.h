@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.32.15
- * Sun Feb  3 23:23:21 2013
+ * Sun Feb  3 23:32:47 2013
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ZRAM_DEBUG 1
@@ -129,6 +129,7 @@
 #define CONFIG_NF_NAT_SIP 1
 #define CONFIG_NETFILTER_NETLINK 1
 #define CONFIG_RADIO_ADAPTERS 1
+#define CONFIG_CPU_FREQ_GOV_LULZACTIVE 1
 #define CONFIG_ZBOOT_ROM_BSS 0x0
 #define CONFIG_SUSPEND 1
 #define CONFIG_SLAB 1
