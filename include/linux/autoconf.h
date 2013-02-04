@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.32.15
- * Sun Feb  3 23:11:05 2013
+ * Sun Feb  3 23:23:21 2013
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ZRAM_DEBUG 1
@@ -747,6 +747,7 @@
 #define CONFIG_NF_NAT_AMANDA 1
 #define CONFIG_SCORPION_Uni_45nm_BUG 1
 #define CONFIG_PRINTK 1
+#define CONFIG_CPU_FREQ_GOV_INTELLIDEMAND 1
 #define CONFIG_POWER_SUPPLY 1
 #define CONFIG_AIO 1
 #define CONFIG_BT_SCO 1
