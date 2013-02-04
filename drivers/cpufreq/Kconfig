@@ -240,6 +240,4 @@ config CPU_FREQ_GOV_LULZACTIVE
 	  help
 	  'lulzactive' - a new interactive governor by Tegrak!
 
-If in doubt, say N.
-
 endif	# CPU_FREQ
