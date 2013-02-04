@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.32.15
- * Sun Feb  3 23:45:21 2013
+ * Sun Feb  3 23:54:31 2013
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ZRAM_DEBUG 1
@@ -307,7 +307,6 @@
 #define CONFIG_BLK_DEV_RAM 1
 #define CONFIG_NETFILTER_XT_TARGET_NFQUEUE 1
 #define CONFIG_MACH_SEMC_HAIDA 1
-#define CONFIG_IOSCHED_ROW 1
 #define CONFIG_VM_EVENT_COUNTERS 1
 #define CONFIG_BACKLIGHT_LCD_SUPPORT 1
 #define CONFIG_SERIAL_MSM_CLOCK_CONTROL 1
