@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
- * Linux kernel version: 2.6.32.11
- * Thu Jan 31 04:21:46 2013
+ * Linux kernel version: 2.6.32.14
+ * Thu Jan 31 05:00:05 2013
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ZRAM_DEBUG 1
