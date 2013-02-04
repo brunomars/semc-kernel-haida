@@ -1,12 +1,7 @@
 /*
  * Automatically generated C config: don't edit
-<<<<<<< HEAD
- * Linux kernel version: 2.6.32.14
- * Thu Jan 31 05:00:05 2013
-=======
- * Linux kernel version: 2.6.32.9
- * Wed Jan 30 14:24:39 2013
->>>>>>> 660a826... VM Max and 0% Battery update
+ * Linux kernel version: 2.6.32.15
+ * Sun Feb  3 23:11:05 2013
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ZRAM_DEBUG 1
@@ -513,6 +508,7 @@
 #define CONFIG_FUTEX 1
 #define CONFIG_IP_NF_MATCH_ECN 1
 #define CONFIG_INET6_IPCOMP 1
+#define CONFIG_CPU_FREQ_GOV_SMARTASS 1
 #define CONFIG_CY8CTMA300_SPI_WIDTH_MAJOR 40
 #define CONFIG_MISC_DEVICES 1
 #define CONFIG_ARCH_SPARSEMEM_DEFAULT 1
@@ -824,6 +820,7 @@
 #define CONFIG_PPP 1
 #define CONFIG_LEDS_AS3676 1
 #define CONFIG_IPV6_ROUTER_PREF 1
+#define CONFIG_CPU_FREQ_DEFAULT_GOV_SMARTASS 1
 #define CONFIG_MEMORY_HOTREMOVE 1
 #define CONFIG_PANIC_TIMEOUT 1
 #define CONFIG_DEBUG_INFO 1
